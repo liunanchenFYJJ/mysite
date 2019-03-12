@@ -1,14 +1,13 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
-// const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
     entry: {
-        app: './index.ts'
+        app: './src/index.js'
     },
     output: {
-        filename: 'index.bundle.js',
+        filename: '[name].bundle.js',
         path: path.resolve(__dirname, 'dist'),
         // publicPath: '/static/'
     },
@@ -16,29 +15,32 @@ module.exports = {
         new CleanWebpackPlugin(),
         new HtmlWebpackPlugin({
             template: 'index.html',
-            inject: true,
+            // inject: true,
             favicon: 'favicon.ico'
-        }),
-        // new CopyWebpackPlugin([{
-        //     from: __dirname + '/src/img',
-        //     to: __dirname + '/dist/static/img'
-        // }])
+        })
     ],
-    // devtool: 'inline-source-map',
+    // // devtool: 'inline-source-map',
     devServer: {
-        contentBase: './dist',
-        hot: true,
-        // proxy: {
-        //     'api': {
-        //         target: '',
-        //         pathRewrite: { '^api': '' },
-        //         changeOrigin: true,
-        //         secure: false
-        //     }
-        // }
+        stats: 'errors-only',
+        host: process.env.HOST,
+        port: process.env.PORT,
+        contentBase: './index.html',
+        // historyApiFallback: true, // 如果路由启用HTML5 History API
+        proxy: {
+            '/api': {
+                target: 'http://localhost:3000',
+                pathRewrite: { '^/api': '' },
+                changeOrigin: true,
+                secure: false
+            }
+        }
     },
     module: {
         rules: [
+            {
+                test: /\.js$/,
+                use: ['babel-loader']
+            },
             {
                 test: /\.tsx?$/,
                 use: ['ts-loader'],
@@ -54,7 +56,13 @@ module.exports = {
             },
             {
                 test: /\.(png|svg|jpg|gif)$/,
-                use: ['file-loader']
+                use: {
+                    loader: 'file-loader',
+                    // options: {
+                    //     name: '/img/[hash].[ext]',
+                    //     publicPath: '/img/'
+                    // }
+                }
             }
         ]
     },
